@@ -19,10 +19,9 @@ prompt() {
 
 inf "Updating gentoo ebuild repo"
 emerge-webrsync
-#emerge --sync
 
-err "Make sure nothing critical is displayed in news:"
 eselect news read
+err "Make sure nothing critical is displayed in news above, then"
 prompt "Press enter."
 
 inf "Rebuilding updates. This *could* take ages"
@@ -40,7 +39,7 @@ TZ="/usr/share/LMAO/XD"
 while [[ ! -f $TZ ]]; do
     prompt "Pick a time zone (Format: America/New_York , Europe/London, etc)"
     PT="$response"
-    TZ="/usr/share/zoneinfo/${PT}"
+    TZ="${PT}"
 done
 
 echo "$TZ" > /etc/timezone
