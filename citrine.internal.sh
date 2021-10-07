@@ -1,6 +1,7 @@
 #!/bin/bash
 
 TARBALL="https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/20211003T170529Z/stage3-amd64-openrc-20211003T170529Z.tar.xz"
+DOWNLOAD_DIR=$(pwd)
 
 inf() {
     echo -e "\e[1m♠ $@\e[0m"
@@ -86,7 +87,7 @@ if [[ "$MANUAL" == "no" ]]; then
             mkfs.vfat ${DISK}p1
             mkfs.ext4 ${DISK}p2
             mount ${DISK}p2 /mnt/gentoo
-            mkdir -p /mnt/boot/efi
+            mkdir -p /mnt/gentoo/boot/efi
             mount ${DISK}p1 /mnt/gentoo/boot/efi
         else
             inf "Initializing ${DISK} as NVME MBR"
@@ -99,7 +100,7 @@ if [[ "$MANUAL" == "no" ]]; then
             mkfs.vfat ${DISK}1
             mkfs.ext4 ${DISK}2
             mount ${DISK}2 /mnt/gentoo
-            mkdir -p /mnt/boot/efi
+            mkdir -p /mnt/gentoo/boot/efi
             mount ${DISK}p1 /mnt/gentoo/boot/efi
         else
             inf "Initializing ${DISK} as MBR"
@@ -181,7 +182,7 @@ mount --bind /run /mnt/gentoo/run
 mount --make-rslave /mnt/gentoo/run
 
 
-cp /usr/bin/continue.sh /mnt/gentoo/.
+cp ${DOWNLOAD_DIR}/continue.sh /mnt/gentoo/.
 chmod +x /mnt/gentoo/continue.sh
 
 # TODO: Keymap changing
@@ -197,7 +198,7 @@ else
     echo ${DISK} > /mnt/gentoo/diskn
 fi
 
-chroot /mnt/gentoo /continue.sh 2>&1 | tee /mnt/var/citrine.chroot.log
+chroot /mnt/gentoo /continue.sh 2>&1 | tee /mnt/gentoo/var/citrine.chroot.log
 rm /mnt/{continue.sh,efimode,diskn}
 
 inf "Chroot complete. Removing temp mounts."
