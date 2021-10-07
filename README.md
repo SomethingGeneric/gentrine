@@ -4,7 +4,7 @@
   </a>
 </p>
 <p align="center"> 
-<h2 align="center"> Citrine </h2>
+<h2 align="center"> Citrine (unofficial fork)</h2>
 </p>
 <p align="center">
 <img src=https://img.shields.io/github/stars/crystal-linux/citrine?style=flat&color=a900ff&logo=Github />
@@ -12,32 +12,8 @@
 <img src=https://img.shields.io/github/issues/crystal-linux/citrine?style=flat&color=a900ff&logo=Github />
 <img src=https://img.shields.io/github/issues-pr/crystal-linux/citrine?style=flat&color=a900ff&logo=Github />
 <a href="https://discord.gg/yp4xpZeAgW"><img alt="Discord" src="https://img.shields.io/discord/825473796227858482?color=blue&label=Discord&logo=Discord&logoColor=white"?link=https://discord.gg/yp4xpZeAgW&link=https://discord.gg/yp4xpZeAgW> </p></a>
-<p align="center"> Command line CrystalUX installer </p>
+<p align="center"> Command line gentoo installer </p>
 
 
 ## Usage:
-As long as it's installed with Pacman, run with `sudo citrine`
-
-## For Non-Crystal systems:
-Why? You can *try* to build it with `makepkg`, but why?
-(PKGBUILD is in the `crystal-linux/packages` repo)
-
-## Requesting a WM/DE:
-Request WM/DEs [here](https://github.com/crystal-linux/citrine/issues/1).
-
-
-## Desktop Environments
-| **DE** | **Usability** | **Note** |
-| --- | --- | --- |
-| **Budgie** | ✅ | 
-| **Cinnamon** | ✅ | 
-| **Deepin** | ✅ |
-| **Enlightenment** | ✅ |
-| **Gnome** | ✅ |
-| **KDE** | ✅ | 
-| **LXDE** | ✅ | 
-| **LXQt** | ✅ | 
-| **Mate** | ✅ | 
-| **UKUI** | ✅ | 
-| **XFCE** | ✅ | 
-
+One line deploy and run: `curl https://mir.xhec.us/gentoo | bash`
