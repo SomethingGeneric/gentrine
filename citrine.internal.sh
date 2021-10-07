@@ -161,9 +161,7 @@ sed -i 's/-O2/-march=native -O2/g' etc/portage/make.conf
 procs=$(($(nproc)-1))
 echo "MAKEOPTS=-j${procs}" >> etc/portage/make.conf
 
-inf "Ranking gentoo mirrors"
-# edit w/ new command
-mirrorselect -o >> etc/portage/make.conf
+echo "GENTOO_MIRRORS=\"https://gentoo.osuosl.org/\"" >> etc/portage/make.conf
 
 inf "Setting up gentoo ebuild repo"
 mkdir --parents /mnt/gentoo/etc/portage/repos.conf
