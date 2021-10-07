@@ -54,7 +54,7 @@ locale-gen
 
 inf "Please select en_US.UTF-8 below:"
 eselect locale list
-prompt "Press enter"
+prompt "en_US is entry #"
 eselect locale set ${response}
 
 env-update && source /etc/profile && export PS1="(chroot) ${PS1}"
@@ -78,8 +78,9 @@ genkernel all
 inf "Ensuring no modules need to be rebuilt"
 emerge @module-rebuild
 
-inf "Installing linux-firmware package"
-emerge sys-kernel/linux-firmware
+# Genkernel pulls
+#inf "Installing linux-firmware package"
+#emerge sys-kernel/linux-firmware
 
 inf "Configuring mounts"
 emerge sys-fs/genfstab
@@ -158,5 +159,26 @@ fi
 
 inf "Generating GRUB config."
 grub-mkconfig -o /boot/grub/grub.cfg
+
+MORE="y"
+while [[ ! "$MORE" == "n" ]]; do
+    prompt "Add a user now? (Y/n)"
+    if [[ ! "$response" == "n" ]]; then
+        inf "Quickly emerging 'doas' for privilege escalation to root when needed"
+        emerge doas
+        prompt "Username: "
+        UN=${response}
+        useradd -m $UN
+        inf "Set password for $UN"
+        passwd $UN
+
+        prompt "Should $UN be able to use 'doas' ? (y/N)"
+        if [[ "$response" == "y" || "$response" == "Y" ]]; then
+            echo "permit persist $UN" >> /etc/doas.conf
+        fi
+    else
+        MORE="n"
+    fi
+done
 
 exit

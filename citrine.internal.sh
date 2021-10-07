@@ -197,7 +197,7 @@ else
 fi
 
 chroot /mnt/gentoo /continue.sh 2>&1 | tee /mnt/gentoo/var/citrine.chroot.log
-rm /mnt/{continue.sh,efimode,diskn}
+rm /mnt/gentoo/{continue.sh,efimode,diskn}
 
 inf "Chroot complete. Removing temp mounts."
 popd
