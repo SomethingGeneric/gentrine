@@ -19,7 +19,7 @@ prompt() {
 
 inf "Updating gentoo ebuild repo"
 emerge-webrsync
-emerge --sync
+#emerge --sync
 
 err "Make sure nothing critical is displayed in news:"
 eselect news read
@@ -32,8 +32,8 @@ inf "Now we're going to configure the USE variable."
 inf "Exactly what you do or don't put in here is *mostly* up to you."
 inf "Reccomended reading: https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base"
 inf "(just the section entitled \"Configuring the USE variable\")"
-prompt "Press enter to edit the file"
-nano /etc/portage/make.conf
+prompt "USE contents: "
+echo "USE=\"${RESPONSE}\"" >> /etc/portage/make.conf
 echo "ACCEPT_LICENSE=\"*\"" >> /etc/portage/make.conf
 
 TZ="/usr/share/LMAO/XD"
@@ -48,21 +48,9 @@ inf "Set TZ to ${TZ}"
 inf "Informing portage..."
 emerge --config sys-libs/timezone-data
 
+# TODO: other locales w/o nano?
+
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-
-clear
-prompt "Do you need more locales than just en_US? (y/N)"
-echo "MORE=$response"
-MORE="$response"
-
-if [[ "$MORE" == "y" || "$MORE" == "Y" ]]; then
-    inf "When we open the file, please remove the leading # before any locales you need."
-    inf "Then, save and exit.\nPress enter."
-    read
-    nano /etc/locale.gen
-fi
-
-inf "Generating selected locales."
 locale-gen
 
 inf "Please select en_US.UTF-8 below:"
@@ -97,10 +85,6 @@ emerge sys-kernel/linux-firmware
 inf "Configuring mounts"
 emerge sys-fs/genfstab
 genfstab -U / > /etc/fstab
-
-inf "We're going to drop you in nano to sanity-check fstab."
-prompt "Press enter"
-nano /etc/fstab
 
 prompt "System hostname"
 sed -i "s/localhost/${response}/g" /etc/conf.d/hostname
