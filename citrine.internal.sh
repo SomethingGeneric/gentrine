@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TARBALL="https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/20211003T170529Z/stage3-amd64-openrc-20211003T170529Z.tar.xz"
+
 inf() {
     echo -e "\e[1m♠ $@\e[0m"
 }
@@ -19,28 +21,7 @@ if [[ "$EUID" != "0" ]]; then
     exit 1
 fi
 
-inf "Checking pacman keyrings"
-pacman-key --init
-pacman-key --populate archlinux
-pacman-key --populate crystal
-
-prompt "Do you need a keyboard layout other than standard US? (y/N)"
-KBD="$response"
-echo "KBD=$response"
-if [[ "$KBD" == "y" || "$KBD" == "Y" ]]; then
-    prompt "We're going to show the list of keymaps in less. Do you know how to exit less? (Y/n)"
-    UL="$response"
-    if [[ "$UL" == "n" ]]; then
-        inf "Once we enter less, use arrows to scroll, and q to quit once you've found the right file."
-        inf "Press enter to go"
-        read
-    fi
-    localectl list-keymaps
-    prompt "Correct keymap"
-    KMP="$response"
-    echo "KMP=$response"
-    loadkeys ${KMP}
-fi
+# TODO: Keymaps in gentoo
 
 clear
 
@@ -84,6 +65,8 @@ echo "EFI=$EFI"
 inf "Setting system clock via network"
 timedatectl set-ntp true
 
+mkdir -p /mnt/gentoo
+
 if [[ "$MANUAL" == "no" ]]; then
     echo "Partitioning disk"
     if [[ "$EFI" == "yes" ]]; then
@@ -102,26 +85,26 @@ if [[ "$MANUAL" == "no" ]]; then
             inf "Initializing ${DISK} as NVME EFI"
             mkfs.vfat ${DISK}p1
             mkfs.ext4 ${DISK}p2
-            mount ${DISK}p2 /mnt
-            mkdir -p /mnt/efi
-            mount ${DISK}p1 /mnt/efi
+            mount ${DISK}p2 /mnt/gentoo
+            mkdir -p /mnt/boot/efi
+            mount ${DISK}p1 /mnt/gentoo/boot/efi
         else
             inf "Initializing ${DISK} as NVME MBR"
             mkfs.ext4 ${DISK}p1
-            mount ${DISK}p1 /mnt
+            mount ${DISK}p1 /mnt/gentoo
         fi
     else
         if [[ "$EFI" == "yes" ]]; then
             inf "Initializing ${DISK} as EFI"
             mkfs.vfat ${DISK}1
             mkfs.ext4 ${DISK}2
-            mount ${DISK}2 /mnt
-            mkdir -p /mnt/efi
-            mount ${DISK}1 /mnt/efi
+            mount ${DISK}2 /mnt/gentoo
+            mkdir -p /mnt/boot/efi
+            mount ${DISK}p1 /mnt/gentoo/boot/efi
         else
             inf "Initializing ${DISK} as MBR"
             mkfs.ext4 ${DISK}1
-            mount ${DISK}1 /mnt
+            mount ${DISK}1 /mnt/gentoo
         fi
     fi
 else
@@ -130,9 +113,9 @@ else
     inf "We're going to drop to a shell for you to partition, but first, PLEASE READ these notes."
     inf "Before you exit the shell, make sure to format and mount a partition for / at /mnt"
     if [[ "$EFI" == "yes" ]]; then
-        mkdir -p /mnt/efi
+        mkdir -p /mnt/gentoo/boot/efi
         inf "Additionally, since this machine was booted with UEFI, please make sure to make a 200MB or greater partition"
-        inf "of type VFAT and mount it at /mnt/efi"
+        inf "of type VFAT and mount it at /mnt/gentoo/boot/efi"
     else
         inf "Please give me the full path of the device you're planning to partition (needed for bootloader installation later)"
         inf "Example: /dev/sda"
@@ -151,7 +134,7 @@ else
         STAT="$response"
         if [[ "$STAT" == "y" ]]; then
 
-            if ! findmnt | grep /mnt; then
+            if ! findmnt | grep /mnt/gentoo; then
                 err "Are you sure you've mounted the partitions?"
             else
                 CONFDONE="YEP"
@@ -160,35 +143,69 @@ else
     done
 fi
 
-inf "Setting up base Crystal System"
-crystalstrap /mnt base linux linux-firmware systemd-sysvcompat networkmanager grub crystal-grub-theme man-db man-pages texinfo nano sudo curl archlinux-keyring neofetch
+inf "Setting time via network"
+ntpd -q -g
+
+pushd /mnt/gentoo
+
+inf "Getting latest(ish) Stage3"
+wget $TARBALL
+
+inf "Unpacking tarball"
+tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner
+rm stage3-*.tar.xz
+
+inf "Setting up sane compilation defaults"
+sed -i 's/-O2/-march=native -O2/g' etc/portage/make.conf
+procs=$(($(nproc)-1))
+echo "MAKEOPTS=-j${procs}" >> etc/portage/make.conf
+
+inf "Ranking gentoo mirrors"
+# edit w/ new command
+mirrorselect -o >> etc/portage/make.conf
+
+inf "Setting up gentoo ebuild repo"
+mkdir --parents /mnt/gentoo/etc/portage/repos.conf
+cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
+
+inf "Copying DNS info for chroot"
+cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
+
+inf "Setting up needed mountpoints for chroot"
+mount --types proc /proc /mnt/gentoo/proc
+mount --rbind /sys /mnt/gentoo/sys
+mount --make-rslave /mnt/gentoo/sys
+mount --rbind /dev /mnt/gentoo/dev
+mount --make-rslave /mnt/gentoo/dev
+mount --bind /run /mnt/gentoo/run
+mount --make-rslave /mnt/gentoo/run
+
+
+cp /usr/bin/continue.sh /mnt/gentoo/.
+chmod +x /mnt/gentoo/continue.sh
+
+# TODO: Keymap changing
+
 if [[ "$EFI" == "yes" ]]; then
-    inf "Installing EFI support package"
-    crystalstrap /mnt efibootmgr
-fi
-
-# Grub theme
-sed -i 's/\/path\/to\/gfxtheme/\/usr\/share\/grub\/themes\/crystal\/theme.txt/g' /mnt/etc/default/grub
-sed -i 's/#GRUB_THEME/GRUB_THEME/g' /mnt/etc/default/grub
-
-cp /usr/bin/continue.sh /mnt/.
-chmod +x /mnt/continue.sh
-
-genfstab -U /mnt >> /mnt/etc/fstab
-
-if [[ "$KBD" == "y" || "$KBD" == "Y" ]]; then
-    echo ${KMP} >> /mnt/keymap
-fi
-
-if [[ "$EFI" == "yes" ]]; then
-    touch /mnt/efimode
+    if [[ "$NVME" == "yes" ]]; then
+        echo "${DISK}p1" > /mnt/gentoo/diskn
+    else
+        echo "${DISK}1" > /mnt/gentoo/diskn
+    fi
+    touch /mnt/gentoo/efimode
 else
-    echo ${DISK} > /mnt/diskn
+    echo ${DISK} > /mnt/gentoo/diskn
 fi
 
-arch-chroot /mnt /continue.sh 2>&1 | tee /mnt/var/citrine.chroot.log
-rm /mnt/continue.sh
+chroot /mnt/gentoo /continue.sh 2>&1 | tee /mnt/var/citrine.chroot.log
+rm /mnt/{continue.sh,efimode,diskn}
+
+inf "Chroot complete. Removing temp mounts."
+popd
+umount -l /mnt/gentoo/dev{/shm,/pts,}
+umount -R /mnt/gentoo
 
 inf "Installation should now be complete."
-read
+prompt "Press enter to reboot"
 
+reboot
