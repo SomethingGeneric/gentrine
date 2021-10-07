@@ -181,4 +181,10 @@ while [[ ! "$MORE" == "n" ]]; do
     fi
 done
 
+prompt "Would you like a shell in the chroot before we reboot? (y/N)"
+if [[ "$response" == "y" || "$response" == "Y" ]]; then
+    inf "Simply 'exit' when you're done."
+    bash
+fi
+
 exit
