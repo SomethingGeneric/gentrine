@@ -16,4 +16,4 @@
 
 
 ## Usage:
-One line deploy and run: `curl https://mir.xhec.us/gentoo | bash`
+Run `chmod +x citrine.sh && ./citrine.sh`
