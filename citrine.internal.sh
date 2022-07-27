@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARBALL="https://bouncer.gentoo.org/fetch/root/all/releases/amd64/autobuilds/20211003T170529Z/stage3-amd64-openrc-20211003T170529Z.tar.xz"
+TARBALL="https://gentoo.osuosl.org/releases/amd64/autobuilds/20220718T184156Z/stage3-amd64-openrc-20220718T184156Z.tar.xz"
 DOWNLOAD_DIR=$(pwd)
 
 inf() {
