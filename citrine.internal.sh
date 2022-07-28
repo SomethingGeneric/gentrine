@@ -149,8 +149,10 @@ ntpd -q -g
 
 pushd /mnt/gentoo
 
-inf "Getting latest(ish) Stage3"
-wget $TARBALL
+if [[ $(ls | grep stage3) == "" ]]; then
+	inf "Getting latest(ish) Stage3"
+	wget $TARBALL
+fi
 
 inf "Unpacking tarball"
 tar xpvf stage3-*.tar.xz --xattrs-include='*.*' --numeric-owner

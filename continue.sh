@@ -35,15 +35,12 @@ prompt "USE contents: "
 echo "USE=\"${RESPONSE}\"" >> /etc/portage/make.conf
 echo "ACCEPT_LICENSE=\"*\"" >> /etc/portage/make.conf
 
-TZ="/usr/share/LMAO/XD"
-while [[ ! -f $TZ ]]; do
-    prompt "Pick a time zone (Format: America/New_York , Europe/London, etc)"
-    PT="$response"
-    TZ="${PT}"
-done
+prompt "Pick a time zone (Format: America/New_York , Europe/London, etc)"
+PT="$response"
+TZ="/usr/share/${PT}"
 
-echo "$TZ" > /etc/timezone
-inf "Set TZ to ${TZ}"
+echo "$PT" > /etc/timezone
+inf "Set TZ to ${PT}"
 inf "Informing portage..."
 emerge --config sys-libs/timezone-data
 
@@ -78,10 +75,6 @@ genkernel all
 inf "Ensuring no modules need to be rebuilt"
 emerge @module-rebuild
 
-# Genkernel pulls
-#inf "Installing linux-firmware package"
-#emerge sys-kernel/linux-firmware
-
 inf "Configuring mounts"
 emerge sys-fs/genfstab
 genfstab -U / > /etc/fstab
@@ -93,11 +86,28 @@ HOSTN="${response}"
 inf "Emerging netifrc for network config"
 emerge --noreplace net-misc/netifrc
 
-ip link show
-prompt "Enter the device name that *isn't* 'lo'"
-pushd /etc/init.d
-ln -s net.lo net.${response}
-popd
+prompt "Would you like to do simple networking for your ethernet device? (Y/n)"
+if [[ ! "$response" == "n" ]]; then
+    ip link show
+    prompt "Enter the device name that *isn't* 'lo'"
+    pushd /etc/init.d
+    ln -s net.lo net.${response}
+    popd
+fi
+
+prompt "Would you like to use wpa_supplicant and configure a WiFi network? (y/N)"
+if [[ "$response" == "y" || "$response" == "Y" ]]; then
+    inf "Emerging wpa_supplicant"
+    emerge wpa_supplicant
+    prompt "WiFi network name (SSID): "
+    NN=${response}
+    prompt "Passphrase (will echo): "
+    NP=${response}
+    wpa_passphrase ${NN} ${NP} > /etc/wpa_supplicant.conf
+    ip link show
+    prompt "Enter WiFi device name: "
+    inf "All you need to do to use wpa_supplicant on reboot is: 'wpa_supplicant -d${response} -c/etc/wpa_supplicant.conf"
+fi
 
 sed -i 's/::/#::/g' /etc/hosts
 sed -i "s/localhost/${HOSTN}.localdomain ${HOSTN} localhost/g" /etc/hosts
@@ -145,6 +155,10 @@ fi
 if [[ -f /efimode ]]; then
     echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
 fi
+
+
+inf "GRUB's depends need git, but don't seem to pull it."
+emerge dev-vcs/git
 
 inf "Emerging GRUB"
 emerge sys-boot/grub:2
