@@ -66,7 +66,7 @@ fi
 echo "EFI=$EFI"
 
 inf "Setting system clock via network"
-timedatectl set-ntp true
+# TODO: ????
 
 mkdir -p /mnt/gentoo
 

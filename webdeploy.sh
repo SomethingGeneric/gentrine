@@ -19,6 +19,7 @@ else
 fi
 
 for f in {citrine.sh,citrine.internal.sh,continue.sh}; do
+    [[ -f $f ]] && rm $f
     curl -O https://raw.githubusercontent.com/SomethingGeneric/gentrine/main/$f
     chmod +x $f
 done
