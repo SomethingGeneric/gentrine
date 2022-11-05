@@ -1,6 +1,8 @@
 #!/bin/bash
 
-TARBALL="https://gentoo.osuosl.org/releases/amd64/autobuilds/20220718T184156Z/stage3-amd64-openrc-20220718T184156Z.tar.xz"
+DATESTR="20221023T170534Z"
+
+TARBALL="https://gentoo.osuosl.org/releases/amd64/autobuilds/$DATESTR/stage3-amd64-openrc-$DATESTR.tar.xz"
 DOWNLOAD_DIR=$(pwd)
 
 inf() {

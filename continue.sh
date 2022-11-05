@@ -19,10 +19,7 @@ prompt() {
 
 inf "Updating gentoo ebuild repo"
 emerge-webrsync
-
 eselect news read
-err "Make sure nothing critical is displayed in news above, then"
-prompt "Press enter."
 
 inf "Rebuilding updates. This *could* take ages"
 emerge --verbose --update --deep --newuse @world
