@@ -1,2 +1,2 @@
 ## Usage:
-Run `chmod +x gentrine.sh && ./gentrine.sh`
+Run `curl https://raw.githubusercontent.com/SomethingGeneric/gentrine/main/webdeploy.sh | bash` to install gentrine, then `./citrine.sh`
