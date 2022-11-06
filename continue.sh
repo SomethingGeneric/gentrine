@@ -165,7 +165,7 @@ if [[ ! -f /efimode ]]; then
     grub-install $(cat /diskn)
 else
     inf "Installing grub for UEFI/EFI"
-    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Gentoo
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=Gentoo
 fi
 
 inf "Generating GRUB config."
