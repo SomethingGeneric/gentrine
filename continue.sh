@@ -29,7 +29,7 @@ inf "Exactly what you do or don't put in here is *mostly* up to you."
 inf "Reccomended reading: https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base"
 inf "(just the section entitled \"Configuring the USE variable\")"
 prompt "USE contents: "
-echo "USE=\"${RESPONSE}\"" >> /etc/portage/make.conf
+echo "USE=\"${response}\"" >> /etc/portage/make.conf
 echo "ACCEPT_LICENSE=\"*\"" >> /etc/portage/make.conf
 
 prompt "Pick a time zone (Format: America/New_York , Europe/London, etc)"
@@ -103,7 +103,12 @@ if [[ "$response" == "y" || "$response" == "Y" ]]; then
     wpa_passphrase ${NN} ${NP} > /etc/wpa_supplicant.conf
     ip link show
     prompt "Enter WiFi device name: "
-    inf "All you need to do to use wpa_supplicant on reboot is: 'wpa_supplicant -d${response} -c/etc/wpa_supplicant.conf"
+    wdev=${response}
+    echo "modules_${wdev}=\"wpa_supplicant\"" >> /etc/conf.d/net
+    echo "config_${wdev}=\"dhcp\"" >> /etc/conf.d/net
+    pushd /etc/init.d
+    ln -s net.lo net.${wdev}
+    popd
 fi
 
 sed -i 's/::/#::/g' /etc/hosts
@@ -116,18 +121,12 @@ inf "Installing and enabling syslog daemon"
 emerge app-admin/sysklogd
 rc-update add sysklogd default
 
-prompt "Would you like a cron daemon? (y/N)"
-if [[ "$response" == "y" || "$response" == "Y" ]]; then
-    inf "Installing and enabling cron daemon"
-    emerge sys-process/cronie
-    rc-update add cronie default
-fi
+inf "Installing and enabling cron daemon"
+emerge sys-process/cronie
+rc-update add cronie default
 
-prompt "Would you like to add a small utility for file indexing? (y/N)"
-if [[ "$response" == "y" || "$response" == "Y" ]]; then
-    inf "Installing mlocate for file indexing"
-    emerge sys-apps/mlocate
-fi
+inf "Installing mlocate for file indexing"
+emerge sys-apps/mlocate
 
 prompt "Would you like to enable SSH for remote access? (y/N)"
 if [[ "$response" == "y" || "$response" == "Y" ]]; then
@@ -142,12 +141,6 @@ fi
 
 inf "Installing dhcp client"
 emerge net-misc/dhcpcd
-
-prompt "Will you need WPA2 (wifi) at a later date? (y/N)"
-if [[ "$response" == "y" || "$response" == "Y" ]]; then
-    inf "Installing iw and wpa_supplicant for wifi configuration (manual)"
-    emerge net-wireless/iw net-wireless/wpa_supplicant
-fi
 
 if [[ -f /efimode ]]; then
     echo 'GRUB_PLATFORMS="efi-64"' >> /etc/portage/make.conf
@@ -191,11 +184,5 @@ while [[ ! "$MORE" == "n" ]]; do
         MORE="n"
     fi
 done
-
-prompt "Would you like a shell in the chroot before we reboot? (y/N)"
-if [[ "$response" == "y" || "$response" == "Y" ]]; then
-    inf "Simply 'exit' when you're done."
-    bash
-fi
 
 exit
