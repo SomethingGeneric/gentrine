@@ -18,11 +18,11 @@ prompt() {
 }
 
 inf "Updating gentoo ebuild repo"
-emerge-webrsync
+emaint -a sync
 eselect news read
 
 inf "Rebuilding updates. This *could* take ages"
-emerge --verbose --update --deep --newuse @world
+emerge -avuDN @world
 
 inf "Now we're going to configure the USE variable."
 inf "Exactly what you do or don't put in here is *mostly* up to you."
