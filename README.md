@@ -4,3 +4,6 @@ Run `curl https://raw.githubusercontent.com/SomethingGeneric/gentrine/main/webde
 
 # This project has moved:
 [GitLab Repository](https://gitlab.mattcompton.dev/matt/gentrine)
+
+# This project has moved:
+[GitLab Repository](https://gitlab.mattcompton.dev/matt/gentrine)
